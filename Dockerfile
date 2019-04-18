@@ -17,6 +17,19 @@ RUN apk update && apk add \
 
 RUN pip install speedtest-cli
 
+RUN apk update && apk upgrade \
+	&& echo @edge http://nl.alpinelinux.org/alpine/edge/community >> /etc/apk/repositories \
+	&& echo @edge http://nl.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories \
+	&& apk add --no-cache chromium@edge \
+	nss@edge \
+	freetype@edge \
+	harfbuzz@edge \
+	ttf-freefont@edge
+
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
+ENV PUPPETEER_EXECUTABLE_PATH /usr/bin/chromium-browser
+
+
 # remove default content
 RUN rm -R /var/www/*
 
@@ -37,7 +50,9 @@ ADD config/nginxEnv.conf /etc/nginx/modules/nginxEnv.conf
 ADD ./ /var/www/html/
 
 # install bower dependencies
-RUN npm install -g yarn && cd /var/www/html/ && yarn install
+RUN npm install -g yarn && cd /var/www/html/ && yarn install \
+	&& yarn add puppeteer@1.11.0 \
+	&& npm install -g fast-cli
 
 EXPOSE 80
 EXPOSE 443
